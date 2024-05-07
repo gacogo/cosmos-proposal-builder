@@ -47,8 +47,9 @@ export const ChainContextProvider = ({
 
   const availableChains = chainList.map((chain) => ({
     ...chain,
-    href: `/${chain.value}`,
   }));
+
+  console.error("availableChains", availableChains);
 
   return (
     <ChainContext.Provider
