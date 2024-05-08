@@ -1,6 +1,6 @@
 {
     "$schema": "../../chain.schema.json",
-    "chainName": "junotestnet",
+    "chainName": "juno",
     "status": "live",
     "networkName": "testnet",
     "prettyName": "Juno Testnet",
@@ -103,15 +103,15 @@
           "provider": "Polkachu"
         }
       ],
-      "rest": [
-        {
-          "address": "https://juno-testnet-api.polkachu.com",
-          "provider": "Polkachu"
-        },
+      "rest": [  
         {
           "address": "https://juno.api.t.stavr.tech",
           "provider": "🔥STAVR🔥"
-        }
+        },
+        {
+            "address": "https://juno-testnet-api.polkachu.com",
+            "provider": "Polkachu"
+          }
       ],
       "grpc": [
         {

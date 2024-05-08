@@ -1,6 +1,6 @@
 {
   "$schema": "../../chain.schema.json",
-  "chainName": "osmosistestnet",
+  "chainName": "osmosis",
   "status": "live",
   "networkType": "testnet",
   "prettyName": "Osmosis Testnet",
@@ -120,19 +120,19 @@
   "apis": {
     "rpc": [
       {
-        "address": "https://rpc.osmotest5.osmosis.zone/",
+        "address": "https://rpc.testnet.osmosis.zone",
         "provider": "Osmosis"
       }
     ],
     "rest": [
       {
-        "address": "https://lcd.osmotest5.osmosis.zone/",
+        "address": "https://lcd.testnet.osmosis.zone",
         "provider": "Osmosis"
       }
     ],
     "grpc": [
       {
-        "address": "https://grpc.osmotest5.osmosis.zone/",
+        "address": "https://grpc.testnet.osmosis.zone",
         "provider": "Osmosis"
       }
     ]
