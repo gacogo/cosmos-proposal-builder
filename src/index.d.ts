@@ -6,13 +6,14 @@ declare global {
     keplr: Keplr;
   }
 
-  interface NetworkConfig {
-    rpc: string;
-    api: string[];
-    chainName: string;
-    netName: string;
-    apiAddrs: string[];
-  }
+  // interface NetworkConfig {
+  //   rpc: string;
+  //   api: string[];
+  //   chainName: string;
+  //   netName: string;
+  //   apiAddrs: string[];
+  //   denom: string;
+  // }
 
   interface QueryParams {
     network: NetName;
@@ -22,7 +23,9 @@ declare global {
       | "installBundle"
       | "parameterChangeProposal"
       | "addPSM"
-      | "addVault";
+      | "addVault"
+      | "communityPoolSpendProposal"
+      | "fundCommunityPool";
     paramType: string;
   }
 

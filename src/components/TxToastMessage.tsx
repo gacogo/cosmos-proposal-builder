@@ -3,7 +3,6 @@ import { DeliverTxResponse } from "@cosmjs/stargate";
 import { ArrowTopRightOnSquareIcon } from "@heroicons/react/20/solid";
 import { ClipboardDocumentIcon } from "@heroicons/react/20/solid";
 import { XMarkIcon } from "@heroicons/react/20/solid";
-import { NetName } from "../contexts/network";
 import { getTxUrl, getGovUrl, parseProposal } from "../utils/transactionParser";
 
 export function TxToastMessage({
@@ -13,7 +12,7 @@ export function TxToastMessage({
   type,
 }: {
   resp: DeliverTxResponse;
-  netName: NetName;
+  netName: string;
   closeToast: () => void;
   type: "bundle" | "proposal";
 }) {

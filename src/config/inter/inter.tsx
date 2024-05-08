@@ -30,7 +30,7 @@ import { accountBalancesQuery } from "../../lib/queries.ts";
 import { selectBldCoins } from "../../lib/selectors.ts";
 
 const Inter = () => {
-  const { netName } = useNetwork();
+  const { currentNetworkName: netName } = useNetwork();
   const { walletAddress, stargateClient } = useWallet();
   const { api } = useNetwork();
   const psmFormRef = useRef<HTMLFormElement>(null);
@@ -43,7 +43,7 @@ const Inter = () => {
   );
 
   const signAndBroadcast = useMemo(
-    () => makeSignAndBroadcast(stargateClient, walletAddress, netName),
+    () => makeSignAndBroadcast(stargateClient, walletAddress, netName!),
     [stargateClient, walletAddress, netName],
   );
 
@@ -105,6 +105,7 @@ const Inter = () => {
         description,
         deposit,
         proposer: walletAddress as string,
+        denom,
       });
 
       try {
@@ -155,7 +156,7 @@ const Inter = () => {
         oracleBrand: issuerName,
         proposedName: issuerName,
         oracleAddresses:
-          netName === "main"
+          netName === "mainnet"
             ? MAINNET_ORACLE_OPERATORS
             : EMERYNET_ORACLE_OPERATORS,
       };
@@ -184,6 +185,7 @@ const Inter = () => {
         description,
         deposit,
         proposer: walletAddress as string,
+        denom,
       });
 
       try {

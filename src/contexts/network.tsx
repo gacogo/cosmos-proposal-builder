@@ -1,96 +1,109 @@
 import { ReactNode, createContext, useEffect, useMemo, useState } from "react";
-import { getNetworkConfig } from "../lib/getNetworkConfig";
 import { useSearch } from "wouter/use-location";
-import qs from "query-string";
 import { toast } from "react-toastify";
+import {
+  fetchChainConfig,
+  fetchNetworksForChain,
+  NetworkConfig,
+} from "../config/chainConfig";
+import { useChain } from "../hooks/useChain";
 
-const _netNames = [
-  "local",
-  "devnet",
-  "ollinet",
-  "xnet",
-  "emerynet",
-  "main",
-] as const;
-export type NetName = (typeof _netNames)[number];
-
-interface NetworkContext {
-  netName: NetName | undefined;
-  netNames: NetName[];
+export interface NetworkContextValue {
+  currentChainName: string | null;
+  currentNetworkName: string | null;
+  siblingNetworkNames: string[];
   networkConfig: NetworkConfig | null;
   error: string | null;
   api: string | undefined;
 }
 
-export const NetworkContext = createContext<NetworkContext>({
-  netName: "local",
-  netNames: Array.from(_netNames) as NetName[],
+export const NetworkContext = createContext<NetworkContextValue>({
+  currentChainName: null,
+  currentNetworkName: null,
+  siblingNetworkNames: [],
   networkConfig: null,
   error: null,
   api: undefined,
 });
-
-const getNameName = (netName: string): NetName | undefined =>
-  _netNames.includes(netName as NetName) ? (netName as NetName) : undefined;
 
 export const NetworkContextProvider = ({
   children,
 }: {
   children: ReactNode;
 }) => {
-  const { network } = qs.parse(useSearch());
-  const [netName, setNameName] = useState<NetName | undefined>(
-    network ? getNameName(network as string) : undefined,
-  );
-  const [networkConfig, setNetworkConfig] = useState<NetworkConfig | null>(
+  const [currentNetworkName, setCurrentNetworkName] = useState<string | null>(
     null,
   );
-  const [error, setError] = useState<NetworkContext["error"]>(null);
+  const [error, setError] = useState<NetworkContextValue["error"]>(null);
+  const [networkConfig, setNetworkConfig] =
+    useState<NetworkContextValue["networkConfig"]>(null);
+  const [siblingNetworkNames, setSiblingNetworkNames] = useState<
+    NetworkContextValue["siblingNetworkNames"]
+  >([]);
+  const { currentChainName } = useChain();
+  const [chainName, setChainName] =
+    useState<NetworkContextValue["currentChainName"]>(currentChainName);
+  const search = useSearch();
+  const selectedNetwork = useMemo(
+    () => new URLSearchParams(search).get("network") ?? null,
+    [search],
+  );
 
   useEffect(() => {
-    if (netName) {
-      getNetworkConfig(netName)
+    if (currentChainName) {
+      fetchNetworksForChain(currentChainName)
+        .then(setSiblingNetworkNames)
+        .then(() => setChainName(currentChainName))
+        .catch(() => {
+          setSiblingNetworkNames([]);
+          setError("Failed to fetch network configuration.");
+          toast.error("Failed to fetch network configuration.", {
+            position: "bottom-center",
+            autoClose: 300,
+          });
+        });
+    }
+  }, [currentChainName, chainName]);
+
+  useEffect(() => {
+    const newNetwork =
+      selectedNetwork && siblingNetworkNames.includes(selectedNetwork)
+        ? selectedNetwork
+        : null;
+    if (newNetwork !== currentNetworkName) {
+      setCurrentNetworkName(newNetwork);
+    }
+  }, [selectedNetwork, chainName]);
+
+  useEffect(() => {
+    if (currentNetworkName && currentChainName) {
+      fetchChainConfig(currentChainName, currentNetworkName)
         .then(setNetworkConfig)
         .catch(() => {
           setNetworkConfig(null);
           setError("Failed to fetch network configuration.");
           toast.error("Failed to fetch network configuration.", {
             position: "bottom-center",
-            autoClose: 3000,
+            autoClose: 300,
           });
         });
     }
-  }, [netName]);
+  }, [currentNetworkName, chainName]);
 
-  useEffect(() => {
-    const newNetName = getNameName(network as string);
-    if (newNetName !== netName) {
-      if (_netNames.includes(newNetName as NetName) || !newNetName) {
-        setNameName(newNetName);
-      } else {
-        toast.error("Invalid network in URL.", {
-          position: "bottom-center",
-          autoClose: 3000,
-        });
-      }
-    }
-  }, [network, netName]);
-
-  const netNames = useMemo(() => Array.from(_netNames), []);
-
-  const api = useMemo(() => {
-    if (netName === "local") return "http://localhost:1317";
-    return networkConfig?.apiAddrs?.[0];
-  }, [networkConfig, netName]);
+  const restApi = useMemo(() => {
+    if (currentNetworkName === "local") return "http://localhost:1317";
+    return networkConfig?.apis.rest[0].address;
+  }, [networkConfig, currentNetworkName]);
 
   return (
     <NetworkContext.Provider
       value={{
-        netName,
-        netNames,
+        currentChainName,
+        currentNetworkName,
+        siblingNetworkNames,
         networkConfig,
-        api,
         error,
+        api: restApi,
       }}
     >
       {children}

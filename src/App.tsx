@@ -1,17 +1,16 @@
-import { Suspense } from "react";
+import React, { Suspense } from "react";
 import { ToastContainer } from "react-toastify";
-import { Switch, Route } from "wouter";
-import { Nav } from "./components/Nav";
-import { ChainMenu } from "./components/ChainMenu";
-import { NetworkDropdown } from "./components/NetworkDropdown";
-import { WalletConnectButton } from "./components/WalletConnectButton";
-import { ChainTiles } from "./components/ChainTiles";
-import { useChain } from "./hooks/useChain";
-import { chainConfigMap } from "./config";
-import { LayoutFooter } from "./components/LayoutFooter.tsx";
 
-const App = () => {
-  const { chains } = useChain();
+import { Switch, Route } from "wouter";
+import { ChainTiles } from "./components/ChainTiles";
+import { NetworkDropdown } from "./components/NetworkDropdown";
+import { Nav } from "./components/Nav";
+import { WalletConnectButton } from "./components/WalletConnectButton";
+import { ChainMenu } from "./components/ChainMenu";
+import { LayoutFooter } from "./components/LayoutFooter";
+import { ProposalsLandingPage } from "./config";
+
+const App: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Nav
@@ -20,7 +19,9 @@ const App = () => {
         rightContent={
           <>
             <div className="mr-[5px] relative hidden sm:flex">
-              <ChainMenu />
+              <Suspense fallback={<div>Loading...</div>}>
+                <ChainMenu />
+              </Suspense>
             </div>
             <div className="mr-[5px] relative hidden sm:flex">
               <NetworkDropdown />
@@ -32,23 +33,12 @@ const App = () => {
         }
       />
       <main className="flex-grow mx-auto max-w-7xl min-w-full py-3 sm:py-6 sm:px-6 lg:px-8">
-        <Switch>
-          <Route path="/" component={() => <ChainTiles chains={chains} />} />
-          {chains.map(({ href, value }) => {
-            const LazyComponent = chainConfigMap[value];
-            return (
-              <Route
-                key={value}
-                path={href}
-                component={() => (
-                  <Suspense fallback={<></>}>
-                    <LazyComponent />
-                  </Suspense>
-                )}
-              />
-            );
-          })}
-        </Switch>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Switch>
+            <Route path="/" component={ChainTiles} />
+            <Route path="/:chainName" component={ProposalsLandingPage} />
+          </Switch>
+        </Suspense>
         <LayoutFooter />
       </main>
       <ToastContainer

@@ -1,64 +1,61 @@
-import { ReactNode, createContext, useMemo } from "react";
+import { createContext } from "react";
 import { useLocation } from "wouter";
-import { capitalize } from "../utils/capitalize";
-
-/** "chains" can be apps or chains */
-const _chainNames = [
-  "agoric",
-  "inter",
-  // "cosmos",
-  // "osmosis",
-] as const;
-export type ChainName = (typeof _chainNames)[number];
-
-const imageMap: Record<ChainName, string> = {
-  agoric: "/assets/agoric.svg",
-  inter: "/assets/inter.svg",
-};
+import { fetchAvailableChains } from "../config/chainConfig";
+import { useQuery, UseQueryResult, QueryKey } from "@tanstack/react-query";
 
 export type ChainListItem = {
   label: string;
-  value: ChainName;
+  value: string;
   href: string;
   image: string;
 };
 
-export type ChainList = ChainListItem[];
-
-interface ChainContext {
-  chain: ChainName | undefined;
-  chains: ChainList;
+export interface ChainContextValue {
+  currentChainName: string | null;
+  availableChains: ChainListItem[];
 }
 
-const chainList = Array.from(_chainNames).map((chain) => ({
-  label: capitalize(chain),
-  value: chain,
-  href: `/${chain}`,
-  image: imageMap[chain],
-})) as ChainContext["chains"];
-
-export const ChainContext = createContext<ChainContext>({
-  chain: "agoric",
-  chains: chainList,
+export const ChainContext = createContext<ChainContextValue>({
+  currentChainName: null,
+  availableChains: [],
 });
 
-const getChainName = (chainName: unknown): ChainName | undefined => {
-  if (!chainName || typeof chainName !== "string") return undefined;
-  const pathname = chainName.slice(1);
-  return _chainNames.includes(pathname as ChainName)
-    ? (pathname as ChainName)
-    : undefined;
-};
-
-export const ChainContextProvider = ({ children }: { children: ReactNode }) => {
+export const ChainContextProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const [location] = useLocation();
-  const _chain = useMemo(() => getChainName(location), [location]);
+  const chainName = location.split("/")[1];
+
+  const {
+    data: chainList = [],
+    isLoading,
+    error,
+  }: UseQueryResult<ChainListItem[], Error> = useQuery<ChainListItem[], Error>({
+    queryKey: ["availableChains"] as QueryKey,
+    queryFn: () => fetchAvailableChains(),
+  });
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
+  const availableChains = chainList.map((chain) => ({
+    ...chain,
+  }));
+
+  console.error("availableChains", availableChains);
 
   return (
     <ChainContext.Provider
       value={{
-        chain: _chain,
-        chains: chainList,
+        currentChainName: chainName,
+        availableChains,
       }}
     >
       {children}

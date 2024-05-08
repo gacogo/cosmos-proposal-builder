@@ -8,17 +8,17 @@ import {
   votingParamsQuery,
 } from "../lib/queries";
 import type { DepositParams, VotingParams } from "../types/gov";
-import { selectBldCoins } from "../lib/selectors";
 import { renderCoins, coinsUnit } from "../utils/coin";
 import moment from "moment";
 import { WalletConnectButton } from "./WalletConnectButton.tsx";
 import { NetworkDropdown } from "./NetworkDropdown.tsx";
+import { selectCoins } from "../lib/selectors.ts";
 
 export const DepositSection: React.FC<unknown> = () => {
-  const { api } = useNetwork();
+  const { api, networkConfig } = useNetwork();
   const { walletAddress } = useWallet();
   const depositRef = useRef<HTMLInputElement>(null);
-
+  const denom = networkConfig?.fees.feeTokens[0].denom || "ubld";
   const { minDeposit, votingPeriod } = useQueries({
     queries: [depositParamsQuery(api), votingParamsQuery(api)],
     combine: (
@@ -36,9 +36,9 @@ export const DepositSection: React.FC<unknown> = () => {
   });
 
   const accountBalances = useQuery(accountBalancesQuery(api, walletAddress));
-  const bldCoins = useMemo(
-    () => selectBldCoins(accountBalances),
-    [accountBalances],
+  const coins = useMemo(
+    () => selectCoins(denom, accountBalances),
+    [accountBalances, denom],
   );
   const renderTime = (time: string | undefined) => {
     const onlyNumberTime = String(time).slice(0, -1);
@@ -141,9 +141,9 @@ export const DepositSection: React.FC<unknown> = () => {
                 <div className={"basis-auto"}>
                   <span>
                     Current balance:{" "}
-                    {bldCoins && (
+                    {coins && (
                       <span className="font-semibold">
-                        {renderCoins(bldCoins)}
+                        {renderCoins(coins)}
                       </span>
                     )}
                   </span>

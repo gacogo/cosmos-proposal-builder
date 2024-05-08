@@ -1,7 +1,6 @@
 import { DeliverTxResponse } from "@cosmjs/stargate";
-import { NetName } from "../contexts/network";
 
-const blockExplorerUrls: Record<NetName, string | null> = {
+const blockExplorerUrls: Record<string, string | null> = {
   local: null,
   devnet: "https://devnet.explorer.agoric.net/agoric",
   emerynet: "https://emerynet.explorer.agoric.net/agoric",
@@ -10,12 +9,12 @@ const blockExplorerUrls: Record<NetName, string | null> = {
   main: "https://ping.pub/agoric",
 };
 
-export const getTxUrl = (netName: NetName, txHash: string) => {
+export const getTxUrl = (netName: string, txHash: string) => {
   if (!blockExplorerUrls[netName]) return null;
   return `${blockExplorerUrls[netName]}/tx/${txHash}`;
 };
 
-export const getGovUrl = (netName: NetName, proposalId: string) => {
+export const getGovUrl = (netName: string, proposalId: string) => {
   if (!blockExplorerUrls[netName] || !proposalId) return null;
   return `${blockExplorerUrls[netName]}/gov/${proposalId}`;
 };

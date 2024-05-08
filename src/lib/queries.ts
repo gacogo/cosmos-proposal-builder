@@ -1,5 +1,6 @@
 import type { UseQueryOptions } from "@tanstack/react-query";
 import type { SwingSetApiResponse, SwingSetParams } from "../types/swingset";
+
 import type {
   BankBalanceResponse,
   BankBalances,

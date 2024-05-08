@@ -3,7 +3,7 @@ import type { SigningStargateClient } from "@cosmjs/stargate";
 import type { EncodeObject } from "@cosmjs/proto-signing";
 import { createId } from "@paralleldrive/cuid2";
 import { toast } from "react-toastify";
-import type { NetName } from "../hooks/useNetwork";
+// import type { NetName } from "../hooks/useNetwork";
 import { makeFeeObject } from "./messageBuilder";
 import { parseError } from "../utils/transactionParser";
 import { TxToastMessage } from "../components/TxToastMessage";
@@ -12,7 +12,7 @@ export const makeSignAndBroadcast =
   (
     stargateClient: SigningStargateClient | undefined,
     walletAddress: string | null,
-    netName: NetName | undefined,
+    netName: string | undefined,
   ) =>
   async (
     proposalMsg: EncodeObject,
@@ -56,7 +56,7 @@ export const makeSignAndBroadcast =
         render: ({ closeToast }) => (
           <TxToastMessage
             resp={txResult as DeliverTxResponse}
-            netName={netName as NetName}
+            netName={netName as string}
             closeToast={closeToast as () => void}
             type={type}
           />

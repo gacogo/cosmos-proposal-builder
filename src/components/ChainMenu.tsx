@@ -1,26 +1,28 @@
 import { useMemo } from "react";
 import { capitalize } from "../utils/capitalize";
-
-import { DropdownMenu } from "../components/DropdownMenu";
+import { DropdownMenu } from "./DropdownMenu";
 import { useChain } from "../hooks/useChain";
 
-// XXX Select Chain, Select App ?
 const placeholderText = "Select Chain";
 
 const ChainMenu = () => {
-  const { chain, chains } = useChain();
+  const { currentChainName, availableChains } = useChain();
+  const title = currentChainName
+    ? capitalize(currentChainName)
+    : placeholderText;
 
-  const title = chain ? capitalize(chain) : placeholderText;
-  const labelImage = useMemo(
-    () => (chain ? chains.find((c) => c.value === chain)?.image : undefined),
-    [chain, chains],
-  );
+  const labelImage = useMemo(() => {
+    return currentChainName
+      ? availableChains.find((c) => c.value === currentChainName)?.image
+      : undefined;
+  }, [currentChainName, availableChains]);
+
   return (
     <DropdownMenu
       title={title}
       label={placeholderText}
       labelImage={labelImage}
-      items={chains}
+      items={availableChains}
       showImage={true}
       buttonStyle=""
       dropdownItemStyle=""
