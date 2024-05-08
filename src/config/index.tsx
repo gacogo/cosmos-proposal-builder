@@ -55,6 +55,7 @@ const ProposalsLandingPage = () => {
   );
 
   //TODO this should come from json config file
+  //right now working on default proposals
   const enabledProposals = [
     "textProposal",
     "parameterChangeProposal",

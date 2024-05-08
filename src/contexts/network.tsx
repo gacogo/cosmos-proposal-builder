@@ -90,6 +90,8 @@ export const NetworkContextProvider = ({
     }
   }, [currentNetworkName, chainName]);
 
+  console.error("networkConfig", networkConfig);
+
   const restApi = useMemo(() => {
     if (currentNetworkName === "local") return "http://localhost:1317";
     return networkConfig?.apis.rest[0].address;

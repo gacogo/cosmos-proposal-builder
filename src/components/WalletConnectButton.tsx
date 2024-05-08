@@ -6,15 +6,13 @@ import { toast } from "react-toastify";
 
 const WalletConnectButton = ({ theme }: { theme: ButtonProps["theme"] }) => {
   const { connectWallet, walletAddress, stargateClient } = useWallet();
-  const connectHandler = useMemo(
-    () => () => {
+  const connectHandler = () => {
       connectWallet()
         .then(console.log)
         .catch(console.error)
         .finally(() => console.log("connect wallet finished"));
-    },
-    [connectWallet],
-  );
+  };
+
 
   const buttonText = useMemo(() => {
     if (!walletAddress || !stargateClient) return "Connect Wallet";
@@ -27,11 +25,8 @@ const WalletConnectButton = ({ theme }: { theme: ButtonProps["theme"] }) => {
     }
   }, [walletAddress, connectHandler, stargateClient]);
 
-  const handleClick = () => {
-    connectHandler();
-  };
-
-  return <Button onClick={handleClick} text={buttonText} theme={theme} />;
+  
+  return <Button onClick={connectHandler} text={buttonText} theme={theme} />;
 };
 
 export { WalletConnectButton };

@@ -75,7 +75,7 @@ export const WalletContextProvider = ({
           throw Error("Missing Keplr");
         }
         const { chainId } = await makeChainInfo(networkConfig);
-
+          console.log(" we got chainId", chainId);
         if (chainId) {
           await window.keplr.enable(chainId);
           const offlineSigner = window.keplr.getOfflineSigner(chainId);
@@ -140,10 +140,10 @@ export const WalletContextProvider = ({
               },
             });
         } catch (error) {
-          toast.error("Error setting up SigningStargateClient: " + error, {
-            position: "top-right",
-            autoClose: 30000,
-          });
+          // toast.error("Error setting up SigningStargateClient: " + error, {
+          //   position: "top-right",
+          //   autoClose: 30000,
+          // });
           console.error("Error setting up SigningStargateClient:", error);
           window.localStorage.removeItem("walletAddress");
         }
@@ -202,6 +202,7 @@ export const WalletContextProvider = ({
   useEffect(() => {
     if (!networkConfig && stargateClient.current) {
       stargateClient.current = undefined;
+      window.localStorage.removeItem("walletAddress");
       return;
     }
     if (walletAddress && networkConfig && !stargateClient.current) {
@@ -226,6 +227,8 @@ export const WalletContextProvider = ({
       stargateClient.current = undefined;
     }
   }, [currentChainName]); //TODO: wallet only changes upon networ/wallet switcj
+
+  console.error('walletAddress', walletAddress);
 
   return (
     <WalletContext.Provider
