@@ -7,17 +7,22 @@ export type ChainListItem = {
   label: string;
   value: string;
   href: string;
+  parent: ChainListItem["value"];
   image: string;
 };
 
 export interface ChainContextValue {
-  currentChainName: string | null;
+  currentChain: ChainListItem | null;
   availableChains: ChainListItem[];
+  location: string | null;
+  setLocation: (location: string) => void;
 }
 
 export const ChainContext = createContext<ChainContextValue>({
-  currentChainName: null,
+  currentChain: null,
   availableChains: [],
+  location: null,
+  setLocation: () => {},
 });
 
 export const ChainContextProvider = ({
@@ -25,7 +30,7 @@ export const ChainContextProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const chainName = location.split("/")[1];
 
   
@@ -42,8 +47,8 @@ export const ChainContextProvider = ({
     ...chain,
   }));
   
-  const currentChain = useMemo(() => availableChains.find((chain) => chain.value === chainName), [chainName, availableChains]);
-
+  console.error("availableChains",  availableChains);
+  const currentChain:ChainListItem | undefined = useMemo(() => availableChains.find((chain) => chain.value === chainName), [chainName, availableChains]);
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -58,8 +63,10 @@ export const ChainContextProvider = ({
   return (
     <ChainContext.Provider
       value={{
-        currentChainName:  currentChain?.value || null,
+        currentChain: currentChain || null, 
         availableChains,
+        location,
+        setLocation,
       }}
     >
       {children}
@@ -67,14 +74,3 @@ export const ChainContextProvider = ({
   );
 };
 
-/**
- * 
-const {
-  data: netNames = [],
-  isLoading,
-  error: queryError,
-}: UseQueryResult<string[], Error> = useQuery<string[], Error>({
-  queryKey: ["siblingNetworkNames", chainName] as QueryKey,
-  queryFn: () => fetchNetworksForChain(chainName as string),
-});
- */

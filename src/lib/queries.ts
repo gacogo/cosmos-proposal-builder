@@ -173,3 +173,15 @@ export const ibcDenomHashQuery = (
   },
   enabled: !!api,
 });
+
+export const communityPoolQuery = (
+  api: string | undefined,
+): UseQueryOptions<Coin[], unknown> => ({
+  queryKey: ["communityPool", api],
+  queryFn: async (): Promise<Coin[]> => {
+    const res = await fetch(`${api}/cosmos/distribution/v1beta1/community_pool`);
+    const data: { pool: Coin[] } = await res.json();
+    return data?.pool;
+  },
+  enabled: !!api,
+});

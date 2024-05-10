@@ -12,9 +12,9 @@ import { Button } from "./Button";
 import { ParamChange } from "cosmjs-types/cosmos/params/v1beta1/params";
 import { ParameterChangeFormSection } from "./ParameterChangeForm";
 import { DepositSection } from "./DepositSection";
-import { paramOptions } from "../config/agoric/params";
 import type { ParameterChangeTypeOption } from "../types/form";
 import { TitleDescriptionInputs } from "./TitleDescriptionInputs";
+import { paramOptions } from "../config/agoric/params";
 
 const COIN_UNITS = 1_000_000;
 
@@ -96,32 +96,33 @@ const ProposalForm = forwardRef<ProposalFormMethods, ProposalFormProps>(
             const changes = paramChangeRef.current?.getChanges();
             if (!Array.isArray(changes)) throw new Error("No changes");
             return handleSubmit({ ...args, msgType, changes });
-          } else if (msgType === "fundCommunityPool") {
-            const amount = (formData.get("amount") as string) || "";
-            return handleSubmit({
-              ...args,
-              msgType,
-              fundAmount: [
-                { amount: Number(amount) * COIN_UNITS, denom: denom || "" },
-              ],
-            });
-          } else if (msgType === "communityPoolSpendProposal") {
-            const recipient = (formData.get("recipient") as string) || "";
-            const requestedAmount = (formData.get("amount") as string) || "";
-            const denom = (formData.get("denom") as string) || "";
-
-            return handleSubmit({
-              ...args,
-              msgType,
-              spend: [
-                {
-                  recipient,
-                  amount: Number(requestedAmount) * COIN_UNITS,
-                  denom,
-                },
-              ],
-            });
           }
+          // } else if (msgType === "fundCommunityPool") {
+          //   const amount = (formData.get("amount") as string) || "";
+          //   return handleSubmit({
+          //     ...args,
+          //     msgType,
+          //     fundAmount: [
+          //       { amount: Number(amount) * COIN_UNITS, denom: denom || "" },
+          //     ],
+          //   });
+          // } else if (msgType === "communityPoolSpendProposal") {
+          //   const recipient = (formData.get("recipient") as string) || "";
+          //   const requestedAmount = (formData.get("amount") as string) || "";
+          //   const denom = (formData.get("denom") as string) || "";
+
+          //   return handleSubmit({
+          //     ...args,
+          //     msgType,
+          //     spend: [
+          //       {
+          //         recipient,
+          //         amount: Number(requestedAmount) * COIN_UNITS,
+          //         denom,
+          //       },
+          //     ],
+          //   });
+          // }
         }
       }
       throw new Error("Error reading form data.");
@@ -167,7 +168,7 @@ const ProposalForm = forwardRef<ProposalFormMethods, ProposalFormProps>(
                   </div>
                 </div>
               ) : null}
-              {msgType === "communityPoolSpendProposal" ? (
+              {/* {msgType === "communityPoolSpendProposal" ? (
                 <>
                   <div className="grid grid-cols-2 gap-[10px] pt-[20px]">
                     <label
@@ -205,7 +206,7 @@ const ProposalForm = forwardRef<ProposalFormMethods, ProposalFormProps>(
                     />
                   </div>
                 </>
-              ) : null}
+              ) : null} */}
               {msgType === "fundCommunityPool" ? (
                 <>
                   <div className="grid grid-cols-2 gap-[10px] pt-[20px]">

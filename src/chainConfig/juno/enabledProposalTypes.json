@@ -1,5 +1,5 @@
 {
     "textProposal": true,
-    "parameterChangeProposal": true,
-    "communityPoolSpendProposal": true
+    "communityPoolSpendProposal": true,
+    "fundCommunityPool": true
 }
