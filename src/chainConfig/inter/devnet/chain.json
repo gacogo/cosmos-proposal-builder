@@ -3,6 +3,7 @@
   "chainName": "agoric",
   "website": "https://agoric.com/",
   "bech32Prefix": "agoric",
+
   "networkName": "devnet",
   "chainId": "agoricdev-23",
   "gci": "https://devnet.rpc.agoric.net:443/genesis",
@@ -10,7 +11,7 @@
   "rpcAddrs": ["https://devnet.rpc.agoric.net:443"],
   "apiAddrs": ["https://devnet.api.agoric.net:443"],
   "seeds": ["0f04c4610b7511a64b8644944b907416db568590@34.41.86.254:26656"],
-  "walletUrl": "devnet.staking.agoric.app",
+ 
   "slip44": 564,
   "fees": {
     "feeTokens": [
@@ -29,10 +30,22 @@
   },
 "explorers": [
     {
-      "name": "Agoric devnet Explorer",
-      "url": "https://devnet.explorer.agoric.net/agoric",
-      "txPage": "https://devnet.explorer.agoric.net/agoric/transaction/${txHash}",
-      "accountPage": "https://devnet.explorer.agoric.net/agoric/account/${accountAddress}"
+      "name": "bigdipper",
+      "url": "https://agoric.bigdipper.live/",
+      "txPage": "https://agoric.bigdipper.live/transactions/${txHash}",
+      "accountPage": "https://agoric.bigdipper.live/accounts/${accountAddress}"
+    },
+    {
+      "name": "explorers.guru",
+      "url": "https://agoric.explorers.guru",
+      "txPage": "https://agoric.explorers.guru/transaction/${txHash}",
+      "accountPage": "https://agoric.explorers.guru/account/${accountAddress}"
+    },
+    {
+      "kind": "atomscan",
+      "url": "https://atomscan.com/agoric/",
+      "txPage": "https://atomscan.com/agoric/transactions/${txHash}",
+      "accountPage": "https://atomscan.com/agoric/accounts/${accountAddress}"
     }
   ],
   "apis": {

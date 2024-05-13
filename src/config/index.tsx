@@ -1,19 +1,14 @@
-import { ReactNode, useMemo } from "react";
-import { useQueries } from "@tanstack/react-query";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useNetwork } from "../hooks/useNetwork";
 import { useWallet } from "../hooks/useWallet";
 import { useWatchBundle } from "../hooks/useWatchBundle";
-import {
-  accountBalancesQuery,
-  depositParamsQuery,
-  votingParamsQuery,
-} from "../lib/queries";
+import { accountBalancesQuery } from "../lib/queries";
 import { selectCoins } from "../lib/selectors";
 import { makeSignAndBroadcast } from "../lib/signAndBroadcast";
 import { ProposalArgs, ProposalForm } from "../components/ProposalForm";
 import { BundleForm, BundleFormArgs } from "../components/BundleForm";
 import { Code } from "../components/inline";
-import { CommunitySpend } from "./proposalTemplates/communitySpend";
 import { FundCommunityPool } from "./proposalTemplates/fundCommunityPool";
 import { Tabs } from "../components/Tabs";
 import { isValidBundle } from "../utils/validate";
@@ -22,45 +17,61 @@ import { AlertBox } from "../components/AlertBox";
 import { createProposalMessage } from "../utils/createProposalMessage";
 import { toast } from "react-toastify";
 import { makeInstallBundleMsg } from "../lib/messageBuilder";
+import { enabledProposals } from "./chainConfig";
 
 const ProposalsLandingPage = () => {
-  const { currentNetworkName, networkConfig } = useNetwork();
-  const { walletAddress, stargateClient, rpc } = useWallet();
+  const { networkConfig, currentChain } = useNetwork();
+  const { walletAddress, stargateClient, rpc, api } = useWallet();
   const denom = networkConfig?.fees.feeTokens[0].denom;
-  const { api } = useNetwork();
+  const explorerUrl = networkConfig?.explorers?.[0]?.url;
+
+  const [permittedProposals, setPermittedProposals] = useState<
+    QueryParams["msgType"][]
+  >([]);
+
+  const fetchEnabledProposals = useCallback(async (chainName: string) => {
+    try {
+      const proposals = await enabledProposals(chainName);
+      setPermittedProposals(proposals);
+    } catch {
+      setPermittedProposals([]);
+    }
+  }, []);
+
+  // reconfigure permitted proposals when chain changes(not parent chain)
+  //TODO: incomplete logic - currently using a workaround for child chains - just inter currently
+  useEffect(() => {
+    if (currentChain) {
+      fetchEnabledProposals(currentChain.value);
+    }
+  }, [currentChain, fetchEnabledProposals, networkConfig]);
+
   const watchBundle = useWatchBundle(rpc!, {
     clipboard: window.navigator.clipboard,
   });
 
-  const accountBalances = useQueries({
-    queries: [
-      accountBalancesQuery(api, walletAddress),
-      depositParamsQuery(api),
-      votingParamsQuery(api),
-    ],
-    combine: (results) => {
-      const [balances, deposit, voting] = results;
-      return {
-        coinWealth: selectCoins(denom!, balances),
-        minDeposit: deposit.data?.min_deposit,
-        votingPeriod: voting.data?.voting_period,
-      };
-    },
-  });
+  if (!api || !walletAddress) {
+    console.error("No api and/or wallet address found. ");
+  }
+  if (!denom) {
+    console.error("No denom found. ");
+  }
+  if (!explorerUrl) {
+    console.error("No explorer url found. ");
+  }
+  const accountBalances = useQuery(accountBalancesQuery(api!, walletAddress));
+
+  const coinWealth = useMemo(
+    () => selectCoins(denom!, accountBalances),
+    [accountBalances, denom],
+  );
+  // const { data: availableFunds = [] } = useQuery(communityPoolQuery(api!));
 
   const signAndBroadcast = useMemo(
     () =>
-      makeSignAndBroadcast(stargateClient, walletAddress, currentNetworkName!),
-    [stargateClient, walletAddress, currentNetworkName],
+      makeSignAndBroadcast(stargateClient, walletAddress, explorerUrl || null),
+    [stargateClient, walletAddress, explorerUrl],
   );
-
-  //TODO this should come from json config file
-  const enabledProposals = [
-    "textProposal",
-    "parameterChangeProposal",
-    "fundCommunityPool",
-    "communityPoolSpendProposal",
-  ] as QueryParams["msgType"][];
 
   const handleProposal = async (
     msgType: QueryParams["msgType"],
@@ -223,10 +234,21 @@ const ProposalsLandingPage = () => {
         title: "Community Spend Proposal",
         msgType: "communityPoolSpendProposal",
         content: (
-          <CommunitySpend
-            onSubmit={(data) =>
+          <ProposalForm
+            title="Community Spend Proposal"
+            handleSubmit={(data) =>
               handleProposal("communityPoolSpendProposal", data)
             }
+            description={
+              <>
+                This governance proposal to spend funds from the community pool.
+                The community pool is funded by a portion of the transaction
+                fees on the Agoric chain. The proposal must include the
+                recipient address and the amount to be sent.
+              </>
+            }
+            msgType="communityPoolSpendProposal"
+            governanceForumLink="https://community.agoric.com/c/governance/community-fund/14"
           />
         ),
       },
@@ -238,16 +260,16 @@ const ProposalsLandingPage = () => {
     ];
 
     return tabs.filter((tab) =>
-      enabledProposals.includes(tab.msgType as QueryParams["msgType"]),
+      permittedProposals.includes(tab.msgType as QueryParams["msgType"]),
     );
-  }, [enabledProposals, handleProposal]);
+  }, [handleProposal, permittedProposals]);
 
   return (
     <>
-      <AlertBox coins={accountBalances.coinWealth} />
+      <AlertBox coins={coinWealth} />
       <Tabs tabs={proposalTabs} />
     </>
   );
 };
 
-export { ProposalsLandingPage };
+export default ProposalsLandingPage;

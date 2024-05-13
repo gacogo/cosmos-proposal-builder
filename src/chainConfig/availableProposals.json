@@ -1,0 +1,12 @@
+
+{
+    "textProposal": true,
+    "parameterChangeProposal": true,
+    "communityPoolSpendProposal": true,
+    "softwareUpgradeProposal": true,
+    "installBundle": true,
+    "addPSM": true,
+    "addVault": true,
+    "fundCommunityPool": true
+
+}

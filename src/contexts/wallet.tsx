@@ -20,6 +20,7 @@ interface WalletContextValue {
   stargateClient: SigningStargateClient | undefined;
   isLoading: boolean;
   rpc: string | null;
+  api: string | null;
 }
 
 export const WalletContext = createContext<WalletContextValue>({
@@ -28,17 +29,16 @@ export const WalletContext = createContext<WalletContextValue>({
   stargateClient: undefined,
   isLoading: false,
   rpc: null,
+  api: null,
 });
-
 export const WalletContextProvider = ({
   children,
 }: {
   children: ReactNode;
 }) => {
   const stargateClient = useRef<SigningStargateClient | undefined>(undefined);
-  const { currentNetworkName, networkConfig, currentChainName } = useNetwork();
-  const [currNetName, setCurrNetName] = useState(networkConfig?.chainId);
-
+  const { networkConfig, currentChain } = useNetwork();
+  const [api, setApi] = useState<WalletContextValue["api"]>(null);
   const [walletAddress, setWalletAddress] = useState<
     WalletContextValue["walletAddress"]
   >(() => {
@@ -47,89 +47,56 @@ export const WalletContextProvider = ({
     }
     return null;
   });
-
-  const [rpc, setRpc] = useState<WalletContextValue["rpc"]>(() => {
-    if (window.localStorage.getItem("rpc")) {
-      return window.localStorage.getItem("rpc") || null;
-    }
-    return null;
-  });
+  const [rpc, setRpc] = useState<WalletContextValue["rpc"]>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [currChain, setCurrChain] = useState<string | undefined>(
+    networkConfig?.chainId,
+  );
 
   const saveAddress = useCallback(({ address }: AccountData) => {
     window.localStorage.setItem("walletAddress", address);
     setWalletAddress(address);
   }, []);
 
-  const handleWalletChange = useCallback(async () => {
-    setIsLoading(true);
-
-    if (currentChainName && currentNetworkName && networkConfig) {
-      //suspect
-      try {
-        if (!window.keplr) {
-          toast.error("Missing Keplr", {
-            position: "top-right",
-            autoClose: 30000,
-          });
-          throw Error("Missing Keplr");
-        }
-        const { chainId } = await makeChainInfo(networkConfig);
-
-        if (chainId) {
-          await window.keplr.enable(chainId);
-          const offlineSigner = window.keplr.getOfflineSigner(chainId);
-          const accounts = await offlineSigner.getAccounts();
-          if (accounts?.[0].address !== walletAddress) {
-            saveAddress(accounts[0]);
-          }
-        }
-      } catch (error) {
-        setIsLoading(false);
-        toast.error(
-          "Error  handling wallet change. Reload the page or contact support",
-          {
-            position: "top-right",
-            autoClose: 30000,
-          },
-        );
-        console.error("Error handling wallet change:", error);
-      }
-    }
-  }, [currentChainName, currentNetworkName, walletAddress, saveAddress]);
+  const removeAddress = useCallback(() => {
+    window.localStorage.removeItem("walletAddress");
+    setWalletAddress(null);
+  }, []);
 
   const connectWallet = useCallback(async () => {
     setIsLoading(true);
 
+    if (!window.keplr) {
+      toast.error("Keplr not found", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      throw Error("Missing Keplr");
+    }
+
     try {
-      if (!networkConfig) {
-        toast.error("No network config found", {
+      if (!networkConfig || !currentChain) {
+        toast.error("No network config or current chain found", {
           position: "top-right",
-          autoClose: 30000,
+          autoClose: 3000,
         });
-        throw new Error("No network config found");
+        throw new Error("No network config or current chain found");
       }
-      const { chainId, rpc, feeCurrencies } =
+
+      const { chainId, rpc, rest, feeCurrencies } =
         await makeChainInfo(networkConfig);
-      setRpc(rpc);
 
-      const { keplr } = window;
-
-      if (!keplr) {
-        toast.error("Missing Keplr", {
-          position: "top-right",
-          autoClose: 30000,
-        });
-        throw Error("Missing Keplr");
-      }
       if (chainId) {
-        // setChainInfo(chainInfo);
-        await keplr.enable(chainId);
-        const offlineSigner = keplr.getOfflineSigner(chainId);
+        console.error("chain id is ", chainId);
+        setRpc(rpc);
+        setApi(rest);
+        await window.keplr.enable(chainId);
+        const offlineSigner = window.keplr.getOfflineSigner(chainId);
         const accounts = await offlineSigner.getAccounts();
         if (accounts?.[0].address !== walletAddress) {
           saveAddress(accounts[0]);
         }
+
         try {
           stargateClient.current =
             await SigningStargateClient.connectWithSigner(rpc, offlineSigner, {
@@ -140,92 +107,60 @@ export const WalletContextProvider = ({
               },
             });
         } catch (error) {
-          toast.error("Error setting up SigningStargateClient: " + error, {
-            position: "top-right",
-            autoClose: 30000,
-          });
           console.error("Error setting up SigningStargateClient:", error);
-          window.localStorage.removeItem("walletAddress");
+          removeAddress();
         }
       }
     } catch (error) {
       console.error("Failed to suggest chain:", error);
-      toast.error("Select network first.", {
+      toast.error("Failed to suggest chain " + error, {
         position: "top-right",
-        autoClose: 30000,
+        autoClose: 3000,
       });
+      stargateClient.current = undefined;
+      removeAddress();
     } finally {
       setIsLoading(false);
     }
-  }, [
-    currNetName,
-    currentNetworkName, // not sure about this
-    walletAddress,
-    networkConfig,
-    saveAddress,
-  ]);
+  }, [networkConfig, currentChain, saveAddress, removeAddress]);
 
-  //TODO: Should we try connecting when rpc change as well?
   useEffect(() => {
-    if (networkConfig && currNetName !== networkConfig.chainId) {
-      setWalletAddress(null);
+    if (networkConfig) {
+      if (currChain !== networkConfig.chainId) {
+        stargateClient.current = undefined;
+        setRpc(null);
+        setApi(null);
+        removeAddress();
+        setCurrChain(networkConfig.chainId);
+      }
+    } else {
       stargateClient.current = undefined;
-      if (walletAddress) connectWallet();
-      setCurrNetName(networkConfig.chainId);
-    }
-  }, [networkConfig, currNetName, walletAddress, connectWallet]);
-
-  useEffect(() => {
-    if (!currentNetworkName && stargateClient.current) {
-      stargateClient.current = undefined;
-      setWalletAddress(null);
-      return;
-    }
-    if (walletAddress && currentNetworkName && !stargateClient.current) {
-      connectWallet();
-    }
-  }, [walletAddress, currentNetworkName, saveAddress, connectWallet]);
-
-  useEffect(() => {
-    window.addEventListener("keplr_keystorechange", handleWalletChange);
-    return () => {
-      window.removeEventListener("keplr_keystorechange", handleWalletChange);
-    };
-  }, [handleWalletChange]);
-
-  useEffect(() => {
-    if (networkConfig && currNetName && !walletAddress) {
-      connectWallet();
-    }
-  }, [networkConfig, currentNetworkName, walletAddress, connectWallet]);
-
-  useEffect(() => {
-    if (!networkConfig && stargateClient.current) {
-      stargateClient.current = undefined;
-      return;
-    }
-    if (walletAddress && networkConfig && !stargateClient.current) {
-      connectWallet();
-    }
-  }, [
-    walletAddress,
-    currentChainName,
-    currNetName,
-    networkConfig,
-    connectWallet,
-    saveAddress,
-    handleWalletChange,
-  ]);
-
-  useEffect(() => {
-    if (!networkConfig) {
-      setWalletAddress(null);
       setRpc(null);
-      setCurrNetName(undefined);
-      window.localStorage.removeItem("walletAddress");
-      stargateClient.current = undefined;
+      setApi(null);
+      removeAddress();
+      setCurrChain(undefined);
     }
-  }, [currentChainName]); //TODO: wallet only changes upon networ/wallet switcj
+  }, [currentChain, currChain, removeAddress]);
+
+  useEffect(() => {
+    if (
+      networkConfig &&
+      walletAddress &&
+      (!stargateClient.current || currChain !== networkConfig.chainId)
+    ) {
+      connectWallet();
+      setCurrChain(networkConfig.chainId);
+    }
+  }, [networkConfig, walletAddress, stargateClient, currChain, connectWallet]);
+
+  useEffect(() => {
+    if (stargateClient.current && (!currChain || !networkConfig)) {
+      stargateClient.current = undefined;
+      setRpc(null);
+      setApi(null);
+      removeAddress();
+    }
+  }, [stargateClient, currChain, networkConfig, removeAddress]);
 
   return (
     <WalletContext.Provider
@@ -235,6 +170,7 @@ export const WalletContextProvider = ({
         stargateClient: stargateClient.current,
         isLoading,
         rpc,
+        api,
       }}
     >
       {children}

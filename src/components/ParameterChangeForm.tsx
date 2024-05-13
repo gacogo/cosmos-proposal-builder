@@ -11,7 +11,6 @@ import { useQuery } from "@tanstack/react-query";
 import { navigate, useSearch } from "wouter/use-location";
 import qs from "query-string";
 import isEqual from "lodash.isequal";
-import { useNetwork } from "../hooks/useNetwork";
 import { updateSearchString } from "../utils/updateSearchString";
 import { EditableTable, RowValue } from "./EditableTable";
 import { ParamsTypeSelector } from "./ParamsTypeSelector";
@@ -19,6 +18,7 @@ import { BeansPerUnit } from "../types/swingset";
 import type { FormValue, ParameterChangeTypeOption } from "../types/form";
 import { toast } from "react-toastify";
 import { NetworkDropdown } from "./NetworkDropdown.tsx";
+import { useWallet } from "../hooks/useWallet.ts";
 
 type ParameterChangeFormMethods = {
   getChanges: () => ParamChange[];
@@ -33,10 +33,14 @@ function ParameterChangeFormSectionBase<T, R extends FormValue[] | undefined>(
   ref: React.ForwardedRef<ParameterChangeFormMethods>,
 ) {
   const { paramType } = qs.parse(useSearch());
-  const { api } = useNetwork();
+  const { api } = useWallet();
+  // if (!api) {
+  //   toast.error("Please select a network!", { autoClose: 3000 });
+  //   throw new Error("No api found.");
+  // }
   const match = options.find((x) => x.key === paramType) ?? options[0];
   const [stagedParams, setStagedParams] = useState<FormValue[] | null>(null);
-  const paramsQuery = useQuery(match.query(api));
+  const paramsQuery = useQuery(match.query(api!));
 
   const currentParams = useMemo(
     () => match.selector(paramsQuery),

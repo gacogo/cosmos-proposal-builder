@@ -8,7 +8,8 @@ import { Nav } from "./components/Nav";
 import { WalletConnectButton } from "./components/WalletConnectButton";
 import { ChainMenu } from "./components/ChainMenu";
 import { LayoutFooter } from "./components/LayoutFooter";
-import { ProposalsLandingPage } from "./config";
+import Inter from "./config/inter";
+import ProposalsLandingPage from "./config";
 
 const App: React.FC = () => {
   return (
@@ -36,6 +37,7 @@ const App: React.FC = () => {
         <Suspense fallback={<div>Loading...</div>}>
           <Switch>
             <Route path="/" component={ChainTiles} />
+            <Route path="/inter" component={Inter} />
             <Route path="/:chainName" component={ProposalsLandingPage} />
           </Switch>
         </Suspense>

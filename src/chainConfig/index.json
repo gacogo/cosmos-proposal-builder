@@ -1,7 +1,9 @@
-[
-    "cosmoshub",
-    "agoric",
-    "juno",
-    "inter"
-  ]
+
+   { "cosmoshub": true,
+    "agoric": true,
+    "juno": true,
+    "osmosis": true , 
+    "inter": "agoric"
+  }
+
   

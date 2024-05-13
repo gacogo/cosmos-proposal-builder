@@ -15,12 +15,12 @@ import { NetworkDropdown } from "./NetworkDropdown.tsx";
 import { selectCoins } from "../lib/selectors.ts";
 
 export const DepositSection: React.FC<unknown> = () => {
-  const { api, networkConfig } = useNetwork();
-  const { walletAddress } = useWallet();
+  const { networkConfig } = useNetwork();
+  const { walletAddress, api } = useWallet();
   const depositRef = useRef<HTMLInputElement>(null);
   const denom = networkConfig?.fees.feeTokens[0].denom || "ubld";
   const { minDeposit, votingPeriod } = useQueries({
-    queries: [depositParamsQuery(api), votingParamsQuery(api)],
+    queries: [depositParamsQuery(api!), votingParamsQuery(api!)],
     combine: (
       results: [
         UseQueryResult<DepositParams, unknown>,
@@ -35,7 +35,7 @@ export const DepositSection: React.FC<unknown> = () => {
     },
   });
 
-  const accountBalances = useQuery(accountBalancesQuery(api, walletAddress));
+  const accountBalances = useQuery(accountBalancesQuery(api!, walletAddress));
   const coins = useMemo(
     () => selectCoins(denom, accountBalances),
     [accountBalances, denom],

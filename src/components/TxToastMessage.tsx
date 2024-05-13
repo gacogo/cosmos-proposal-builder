@@ -7,18 +7,18 @@ import { getTxUrl, getGovUrl, parseProposal } from "../utils/transactionParser";
 
 export function TxToastMessage({
   resp,
-  netName,
+  explorerUrl,
   closeToast = () => {},
   type,
 }: {
   resp: DeliverTxResponse;
-  netName: string;
+  explorerUrl: string | null;
   closeToast: () => void;
   type: "bundle" | "proposal";
 }) {
   const { proposalId, transactionHash } = parseProposal(resp);
-  const txUrl = getTxUrl(netName, transactionHash);
-  const govUrl = getGovUrl(netName, proposalId as string);
+  const txUrl = getTxUrl(transactionHash, explorerUrl);
+  const govUrl = getGovUrl(proposalId as string, explorerUrl);
   const txString = txUrl ? (
     <a
       className="text-sm text-blue-500 hover:text-blue-700 underline"

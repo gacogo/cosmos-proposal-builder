@@ -1,5 +1,6 @@
 import { ProposalArgs } from "../components/ProposalForm";
 import {
+  makeCommunityPoolSpendProposalMsg,
   makeCoreEvalProposalMsg,
   makeFundCommunityPool,
   makeInstallBundleMsg,
@@ -28,7 +29,7 @@ export const createProposalMessage = (
         denom,
       });
     case "parameterChangeProposal":
-      if (proposalData.msgType !== "parameterChangeProposal") return null;
+      if (!("changes" in proposalData)) throw new Error("Missing changes");
       return makeParamChangeProposalMsg({
         ...proposalData,
         proposer,
@@ -38,12 +39,29 @@ export const createProposalMessage = (
       if (!("fundAmount" in proposalData))
         throw new Error("Missing fundAmount");
       return makeFundCommunityPool({
-        ...proposalData,
-        amount: proposalData.fundAmount[0].amount,
+        amount: proposalData.fundAmount.amount,
         depositor: proposer,
+        denom: proposalData.fundAmount.denom,
+      });
+    case "communityPoolSpendProposal": {
+      if (
+        !("spend" in proposalData) ||
+        !Array.isArray(proposalData.spend) ||
+        proposalData.spend.length === 0
+      ) {
+        throw new Error("Missing spend");
+      }
+      const { spend } = proposalData;
+      const { recipient, amount } = spend[0];
+      return makeCommunityPoolSpendProposalMsg({
+        ...proposalData,
+        recipient,
+        amount,
+        proposer,
         denom,
       });
-    case "installBundle":
+    }
+    case "installBundle": {
       if (
         !("compressedBundle" in proposalData) ||
         !("uncompressedSize" in proposalData)
@@ -52,9 +70,10 @@ export const createProposalMessage = (
       }
       return makeInstallBundleMsg({
         compressedBundle: proposalData.compressedBundle as Uint8Array,
-        uncompressedSize: proposalData.uncompressedSize as string, // Cast uncompressedSize to string
+        uncompressedSize: proposalData.uncompressedSize as string,
         submitter: proposer,
       });
+    }
     default:
       return null;
   }

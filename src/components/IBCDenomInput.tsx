@@ -3,9 +3,9 @@ import { Combobox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { useQuery } from "@tanstack/react-query";
 import { ibcDenomTracesQuery, ibcDenomHashQuery } from "../lib/queries";
-import { useNetwork } from "../hooks/useNetwork";
 import { Coin, DenomTrace } from "../types/bank";
 import { selectSinglePathDenomTraces } from "../lib/selectors";
+import { useWallet } from "../hooks/useWallet";
 
 const TraceToHash = ({
   path,
@@ -14,8 +14,8 @@ const TraceToHash = ({
   path: string;
   baseDenom: string;
 }) => {
-  const { api } = useNetwork();
-  const ibcHashTrace = useQuery(ibcDenomHashQuery(api, path, baseDenom));
+  const { api } = useWallet();
+  const ibcHashTrace = useQuery(ibcDenomHashQuery(api!, path, baseDenom));
   if (!ibcHashTrace.data) return null;
   return (
     <>
@@ -33,11 +33,12 @@ const formatTraceOrCoin = (trace: DenomTrace | Coin): string => {
 };
 
 const IBCDenomInput = () => {
-  const { api } = useNetwork();
+  const { api } = useWallet();
   const [selected, setSelected] = useState<DenomTrace | Coin | null>(null);
   const [query, setQuery] = useState<string>("");
+  if (!api) console.error("No api found.");
 
-  const ibcDenomTraces = useQuery(ibcDenomTracesQuery(api));
+  const ibcDenomTraces = useQuery(ibcDenomTracesQuery(api!));
   const singleChannelTraces = useMemo(
     () => selectSinglePathDenomTraces(ibcDenomTraces),
     [ibcDenomTraces],

@@ -12,7 +12,7 @@ export const makeSignAndBroadcast =
   (
     stargateClient: SigningStargateClient | undefined,
     walletAddress: string | null,
-    netName: string | undefined,
+    explorerUrl: string | null,
   ) =>
   async (
     proposalMsg: EncodeObject,
@@ -56,7 +56,7 @@ export const makeSignAndBroadcast =
         render: ({ closeToast }) => (
           <TxToastMessage
             resp={txResult as DeliverTxResponse}
-            netName={netName as string}
+            explorerUrl={explorerUrl as string}
             closeToast={closeToast as () => void}
             type={type}
           />

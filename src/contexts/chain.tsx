@@ -1,4 +1,4 @@
-import { createContext } from "react";
+import { createContext, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { fetchAvailableChains } from "../config/chainConfig";
 import { useQuery, UseQueryResult, QueryKey } from "@tanstack/react-query";
@@ -7,17 +7,24 @@ export type ChainListItem = {
   label: string;
   value: string;
   href: string;
+  parent: ChainListItem["value"];
   image: string;
 };
 
 export interface ChainContextValue {
-  currentChainName: string | null;
+  currentChain: ChainListItem | null;
   availableChains: ChainListItem[];
+  location: string | null;
+  setLocation: (location: string) => void;
+  isLoading: boolean;
 }
 
 export const ChainContext = createContext<ChainContextValue>({
-  currentChainName: null,
+  currentChain: null,
   availableChains: [],
+  location: null,
+  setLocation: () => {},
+  isLoading: false,
 });
 
 export const ChainContextProvider = ({
@@ -25,37 +32,39 @@ export const ChainContextProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const [isLoading, setIsLoading] = useState(false);
   const chainName = location.split("/")[1];
 
   const {
     data: chainList = [],
-    isLoading,
+    isLoading: isLoadingChains,
     error,
   }: UseQueryResult<ChainListItem[], Error> = useQuery<ChainListItem[], Error>({
     queryKey: ["availableChains"] as QueryKey,
     queryFn: () => fetchAvailableChains(),
   });
 
-  if (isLoading) {
-    return <div>Loading...</div>;
+  const currentChain: ChainListItem | undefined = useMemo(
+    () => chainList.find((chain) => chain.value === chainName),
+    [chainName, chainList],
+  );
+  if (isLoadingChains) {
+    setIsLoading(true);
   }
 
   if (error) {
     return <div>Error: {error.message}</div>;
   }
 
-  const availableChains = chainList.map((chain) => ({
-    ...chain,
-  }));
-
-  console.error("availableChains", availableChains);
-
   return (
     <ChainContext.Provider
       value={{
-        currentChainName: chainName,
-        availableChains,
+        currentChain: currentChain || null,
+        availableChains: chainList,
+        isLoading,
+        location,
+        setLocation,
       }}
     >
       {children}

@@ -29,14 +29,14 @@ import { useQuery } from "@tanstack/react-query";
 import { accountBalancesQuery } from "../../lib/queries.ts";
 import { selectBldCoins } from "../../lib/selectors.ts";
 
+//TODO define enabled proposals for inter as a workaround
 const Inter = () => {
   const { currentNetworkName: netName } = useNetwork();
-  const { walletAddress, stargateClient } = useWallet();
-  const { api } = useNetwork();
+  const { walletAddress, stargateClient, api } = useWallet();
   const psmFormRef = useRef<HTMLFormElement>(null);
   const vaultFormRef = useRef<HTMLFormElement>(null);
 
-  const accountBalances = useQuery(accountBalancesQuery(api, walletAddress));
+  const accountBalances = useQuery(accountBalancesQuery(api!, walletAddress));
   const bldCoins = useMemo(
     () => selectBldCoins(accountBalances),
     [accountBalances],
@@ -65,7 +65,6 @@ const Inter = () => {
       const decimalPlaces = formData.get("decimalPlaces") as string;
       const keyword = formData.get("keyword") as string;
       const proposedName = formData.get("proposedName") as string;
-
       if (!denom || !denom.startsWith("ibc/")) {
         toast.error("Invalid IBC Denom.", { autoClose: 3000 });
         return;

@@ -12,7 +12,6 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { CodeInput, CodeInputMethods } from "./CodeInput";
 import { Button } from "./Button";
-import { useNetwork } from "../hooks/useNetwork";
 import { accountBalancesQuery, swingSetParamsQuery } from "../lib/queries";
 
 import { selectStorageCost, selectIstBalance } from "../lib/selectors";
@@ -35,14 +34,13 @@ const BundleForm = forwardRef<BundleFormMethods, BundleFormProps>(
     const [bundle, setBundle] = useState<BundleFormArgs["bundle"] | null>(null);
     const formRef = useRef<HTMLFormElement>(null);
     const codeInputRef = useRef<CodeInputMethods | null>(null);
-    const { api } = useNetwork();
-    const { walletAddress } = useWallet();
-    const swingsetParams = useQuery(swingSetParamsQuery(api));
+    const { walletAddress, api } = useWallet();
+    const swingsetParams = useQuery(swingSetParamsQuery(api!));
     const costPerByte = useMemo(
       () => selectStorageCost(swingsetParams),
       [swingsetParams],
     );
-    const accountBalances = useQuery(accountBalancesQuery(api, walletAddress));
+    const accountBalances = useQuery(accountBalancesQuery(api!, walletAddress));
     const istBalance = useMemo(
       () => selectIstBalance(accountBalances),
       [accountBalances],

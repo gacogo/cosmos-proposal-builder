@@ -19,7 +19,7 @@ vi.mock("@paralleldrive/cuid2", () => ({
 describe("makeSignAndBroadcast Unit Tests", () => {
   let mockStargateClient: { simulate: Mock; signAndBroadcast: Mock };
   let walletAddress: string;
-  let netName: string;
+  let explorerUrl: string | null;
   let proposalMsg: EncodeObject;
 
   beforeEach(() => {
@@ -31,11 +31,11 @@ describe("makeSignAndBroadcast Unit Tests", () => {
     };
 
     walletAddress = "agoric12345";
-    netName = "agoriclocal";
-    proposalMsg = {
-      typeUrl: "mock-type-url",
-      value: "mock-value",
-    };
+    (explorerUrl = null),
+      (proposalMsg = {
+        typeUrl: "mock-type-url",
+        value: "mock-value",
+      });
     vi.mock("@paralleldrive/cuid2", () => ({
       createId: () => "mock-unique-id",
     }));
@@ -55,7 +55,7 @@ describe("makeSignAndBroadcast Unit Tests", () => {
       // @ts-expect-error mock stargateClient
       mockStargateClient,
       walletAddress,
-      netName,
+      explorerUrl,
     );
 
     const res = await signAndBroadcast(proposalMsg, "proposal");
@@ -87,7 +87,7 @@ describe("makeSignAndBroadcast Unit Tests", () => {
       // @ts-expect-error mock stargateClient
       mockStargateClient,
       walletAddress,
-      netName,
+      explorerUrl,
     );
 
     await expect(signAndBroadcast(proposalMsg, "proposal")).rejects.toThrow(
