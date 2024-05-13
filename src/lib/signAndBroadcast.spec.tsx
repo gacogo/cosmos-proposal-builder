@@ -31,11 +31,11 @@ describe("makeSignAndBroadcast Unit Tests", () => {
     };
 
     walletAddress = "agoric12345";
-    explorerUrl = null,
-    proposalMsg = {
-      typeUrl: "mock-type-url",
-      value: "mock-value",
-    };
+    (explorerUrl = null),
+      (proposalMsg = {
+        typeUrl: "mock-type-url",
+        value: "mock-value",
+      });
     vi.mock("@paralleldrive/cuid2", () => ({
       createId: () => "mock-unique-id",
     }));
@@ -87,7 +87,7 @@ describe("makeSignAndBroadcast Unit Tests", () => {
       // @ts-expect-error mock stargateClient
       mockStargateClient,
       walletAddress,
-      explorerUrl    
+      explorerUrl,
     );
 
     await expect(signAndBroadcast(proposalMsg, "proposal")).rejects.toThrow(

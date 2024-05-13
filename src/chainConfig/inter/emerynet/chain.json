@@ -1,0 +1,41 @@
+{
+   
+  "chainName": "agoric",
+  "networkName": "emerynet",
+  "chainId": "agoric-emerynet-8",
+  "website": "https://agoric.com/",
+  "gci": "https://emerynet.rpc.agoric.net:443/genesis",
+  "peers": ["fb86a0993c694c981a28fa1ebd1fd692f345348b@34.171.162.87:26656"],
+  "rpcAddrs": ["https://emerynet.rpc.agoric.net:443"],
+  "apiAddrs": ["https://emerynet.api.agoric.net:443"],
+  "seeds": ["0f04c4610b7511a64b8644944b907416db568590@35.222.138.81:26656"],
+  "slip44": 564,
+  "fees": {
+    "feeTokens": [
+      {
+        "denom": "ubld",
+        "fixedMinGasPrice": 0,
+        "lowGasPrice": 0,
+        "averageGasPrice": 0.025,
+        "highGasPrice": 0.04
+      }
+    ]
+  },
+  "staking": {
+    "stakingTokens": [
+      {
+        "denom": "ubld"
+
+      }
+    ]
+},
+"apis": {
+    "rest": [{"address": "https://emerynet.api.agoric.net:443"} ],
+    "rpc": [{"address": "https://emerynet.rpc.agoric.net:443"} ]
+},
+"logoURIs": [
+    "/public/logo/agoric.svg",
+    "/public/logo/agoric.png"
+  ]
+  
+}

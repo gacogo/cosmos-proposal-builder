@@ -15,8 +15,7 @@ const TraceToHash = ({
   baseDenom: string;
 }) => {
   const { api } = useWallet();
-  if (!api) return null;
-  const ibcHashTrace = useQuery(ibcDenomHashQuery(api, path, baseDenom));
+  const ibcHashTrace = useQuery(ibcDenomHashQuery(api!, path, baseDenom));
   if (!ibcHashTrace.data) return null;
   return (
     <>

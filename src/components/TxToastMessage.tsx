@@ -17,9 +17,7 @@ export function TxToastMessage({
   type: "bundle" | "proposal";
 }) {
   const { proposalId, transactionHash } = parseProposal(resp);
-  console.error("proposalId", proposalId, "transactionHash", transactionHash)
-  console.error("explorerUrl", explorerUrl)
-  const txUrl = getTxUrl(transactionHash, explorerUrl );
+  const txUrl = getTxUrl(transactionHash, explorerUrl);
   const govUrl = getGovUrl(proposalId as string, explorerUrl);
   const txString = txUrl ? (
     <a

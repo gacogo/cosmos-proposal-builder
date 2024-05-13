@@ -1,32 +1,13 @@
 import { DeliverTxResponse } from "@cosmjs/stargate";
 
-const blockExplorerUrls: Record<string, string | null> = {
-  local: null,
-  devnet: "https://devnet.explorer.agoric.net/agoric",
-  emerynet: "https://emerynet.explorer.agoric.net/agoric",
-  xnet: "https://xnet.explorer.agoric.net/agoric",
-  ollinet: "https://ollinet.explorer.agoric.net/agoric",
-  main: "https://ping.pub/agoric",
-};
-
-// export const getTxUrl = (netName: string, txHash: string) => {
-//   if (!blockExplorerUrls[netName]) return null;
-//   return `${blockExplorerUrls[netName]}/tx/${txHash}`;
-// };
-// export const getGovUrl = (netName: string, proposalId: string) => {
-//   if (!blockExplorerUrls[netName] || !proposalId) return null;
-//   return `${blockExplorerUrls[netName]}/gov/${proposalId}`;
-// };
-
-export const getGovUrl = (proposalId: string, explorerUrl: string | null, ) => {
+export const getGovUrl = (proposalId: string, explorerUrl: string | null) => {
   if (!explorerUrl || !proposalId) return null;
   return `${explorerUrl}/gov/${proposalId}`;
-}
-export const getTxUrl = (txHash: string, explorerUrl: string | null, ) => {
+};
+export const getTxUrl = (txHash: string, explorerUrl: string | null) => {
   if (!explorerUrl) return null;
   return `${explorerUrl}/tx/${txHash}`;
-}
-
+};
 
 export function parseError(error: Error) {
   if (error.message.includes("does not exist on chain")) {

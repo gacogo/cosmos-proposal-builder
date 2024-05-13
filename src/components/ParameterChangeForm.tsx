@@ -34,13 +34,13 @@ function ParameterChangeFormSectionBase<T, R extends FormValue[] | undefined>(
 ) {
   const { paramType } = qs.parse(useSearch());
   const { api } = useWallet();
-  if (!api) {
-    toast.error("Please select a network!", { autoClose: 3000 });
-    throw new Error("No api found.");
-  }
+  // if (!api) {
+  //   toast.error("Please select a network!", { autoClose: 3000 });
+  //   throw new Error("No api found.");
+  // }
   const match = options.find((x) => x.key === paramType) ?? options[0];
   const [stagedParams, setStagedParams] = useState<FormValue[] | null>(null);
-  const paramsQuery = useQuery(match.query(api));
+  const paramsQuery = useQuery(match.query(api!));
 
   const currentParams = useMemo(
     () => match.selector(paramsQuery),

@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
 import { classNames } from "../utils/classNames";
+import { Link } from "wouter";
 
 interface DropdownMenuProps {
   title: string;
@@ -14,6 +15,7 @@ interface DropdownMenuProps {
   buttonStyle?: string;
   dropdownItemStyle?: string;
   label: string;
+  labelImage?: string;
   showImage?: boolean;
   status?: "loading" | "error" | "active" | "default";
 }
@@ -27,11 +29,12 @@ const statusColors = {
 
 const DropdownMenu: React.FC<DropdownMenuProps> = ({
   title,
-  items,
   label,
+  items,
   status,
   buttonStyle,
   dropdownItemStyle,
+  labelImage,
   showImage,
 }) => {
   return (
@@ -43,6 +46,13 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({
             buttonStyle ? buttonStyle : "",
           )}
         >
+          {showImage && labelImage && (
+            <img
+              src={labelImage}
+              alt={label}
+              className="w-4 h-4 rounded-full inline-block mr-2.5 self-center"
+            />
+          )}
           {status && (
             <div
               className={classNames(
@@ -81,8 +91,8 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({
             {items.map((item) => (
               <Menu.Item key={item.label}>
                 {({ active }) => (
-                  <a
-                    href={item.href}
+                  <Link
+                    href={item.href || ""}
                     onClick={item.onClick}
                     className={classNames(
                       active ? "bg-gray-100 text-gray-900" : "text-gray-700",
@@ -97,7 +107,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({
                       />
                     )}
                     {item.label}
-                  </a>
+                  </Link>
                 )}
               </Menu.Item>
             ))}

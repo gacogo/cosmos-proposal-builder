@@ -8,25 +8,31 @@ import { useChain } from "../hooks/useChain";
 const placeholderText = "Select Chain";
 
 const ChainMenu = () => {
-  const {availableChains} = useChain();
+  const { availableChains } = useChain();
   const { currentChain, setCurrentChain } = useNetwork();
   const { isLoading: isLoadingWallet, walletAddress } = useWallet();
 
   const title = currentChain ? capitalize(currentChain.label) : placeholderText;
+  const labelImage = useMemo(
+    () => (currentChain ? currentChain.image : undefined),
+    [currentChain],
+  );
 
   const items = useMemo(() => {
     if (availableChains) {
-      return availableChains.map((chain) => ({
-        label: capitalize(chain.label),
-        value: chain,
+      return availableChains.map(({ label, value, image, href, parent }) => ({
+        label,
+        value,
+        image,
         onClick: () => {
-          setCurrentChain(chain);
+          setCurrentChain({ value, label, image, href, parent });
         },
       }));
     }
-    return [{ label: "Loading...", href: "#", value: "" }];
+    return [{ label: "Loading...", value: "" }];
   }, [availableChains, setCurrentChain]);
 
+  console.error("items", items);
   const status = useMemo(() => {
     if (isLoadingWallet) return "loading";
     if (walletAddress && currentChain) return "active";
@@ -34,7 +40,16 @@ const ChainMenu = () => {
     return "error";
   }, [isLoadingWallet, walletAddress, currentChain]);
 
-  return <DropdownMenu title={title} label={placeholderText} items={items} status={status} />;
+  return (
+    <DropdownMenu
+      title={title}
+      label={placeholderText}
+      labelImage={labelImage}
+      items={items}
+      status={status}
+      showImage={true}
+    />
+  );
 };
 
 export { ChainMenu };

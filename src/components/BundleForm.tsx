@@ -12,7 +12,6 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { CodeInput, CodeInputMethods } from "./CodeInput";
 import { Button } from "./Button";
-import { useNetwork } from "../hooks/useNetwork";
 import { accountBalancesQuery, swingSetParamsQuery } from "../lib/queries";
 
 import { selectStorageCost, selectIstBalance } from "../lib/selectors";

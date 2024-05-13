@@ -15,7 +15,7 @@ import { NetworkDropdown } from "./NetworkDropdown.tsx";
 import { selectCoins } from "../lib/selectors.ts";
 
 export const DepositSection: React.FC<unknown> = () => {
-  const {networkConfig } = useNetwork();
+  const { networkConfig } = useNetwork();
   const { walletAddress, api } = useWallet();
   const depositRef = useRef<HTMLInputElement>(null);
   const denom = networkConfig?.fees.feeTokens[0].denom || "ubld";

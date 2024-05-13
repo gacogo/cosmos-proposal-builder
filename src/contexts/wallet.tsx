@@ -39,7 +39,9 @@ export const WalletContextProvider = ({
   const stargateClient = useRef<SigningStargateClient | undefined>(undefined);
   const { networkConfig, currentChain } = useNetwork();
   const [api, setApi] = useState<WalletContextValue["api"]>(null);
-  const [walletAddress, setWalletAddress] = useState<WalletContextValue["walletAddress"]>(() => {
+  const [walletAddress, setWalletAddress] = useState<
+    WalletContextValue["walletAddress"]
+  >(() => {
     if (window.localStorage.getItem("walletAddress")) {
       return window.localStorage.getItem("walletAddress") || null;
     }
@@ -47,7 +49,9 @@ export const WalletContextProvider = ({
   });
   const [rpc, setRpc] = useState<WalletContextValue["rpc"]>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [currChain, setCurrChain] = useState<string | undefined>(networkConfig?.chainId);
+  const [currChain, setCurrChain] = useState<string | undefined>(
+    networkConfig?.chainId,
+  );
 
   const saveAddress = useCallback(({ address }: AccountData) => {
     window.localStorage.setItem("walletAddress", address);
@@ -63,18 +67,27 @@ export const WalletContextProvider = ({
     setIsLoading(true);
 
     if (!window.keplr) {
+      toast.error("Keplr not found", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       throw Error("Missing Keplr");
     }
 
     try {
       if (!networkConfig || !currentChain) {
+        toast.error("No network config or current chain found", {
+          position: "top-right",
+          autoClose: 3000,
+        });
         throw new Error("No network config or current chain found");
       }
 
-      const { chainId, rpc, rest, feeCurrencies } = await makeChainInfo(networkConfig);
+      const { chainId, rpc, rest, feeCurrencies } =
+        await makeChainInfo(networkConfig);
 
       if (chainId) {
-        console.error('chain id is ', chainId);
+        console.error("chain id is ", chainId);
         setRpc(rpc);
         setApi(rest);
         await window.keplr.enable(chainId);
@@ -85,17 +98,14 @@ export const WalletContextProvider = ({
         }
 
         try {
-          stargateClient.current = await SigningStargateClient.connectWithSigner(
-            rpc,
-            offlineSigner,
-            {
+          stargateClient.current =
+            await SigningStargateClient.connectWithSigner(rpc, offlineSigner, {
               registry,
               gasPrice: {
                 denom: feeCurrencies[0].coinMinimalDenom,
                 amount: Decimal.fromUserInput("500000", 0),
               },
-            }
-          );
+            });
         } catch (error) {
           console.error("Error setting up SigningStargateClient:", error);
           removeAddress();
@@ -103,12 +113,16 @@ export const WalletContextProvider = ({
       }
     } catch (error) {
       console.error("Failed to suggest chain:", error);
+      toast.error("Failed to suggest chain " + error, {
+        position: "top-right",
+        autoClose: 3000,
+      });
       stargateClient.current = undefined;
       removeAddress();
     } finally {
       setIsLoading(false);
     }
-  }, [networkConfig, currentChain, walletAddress, saveAddress, removeAddress]);
+  }, [networkConfig, currentChain, saveAddress, removeAddress]);
 
   useEffect(() => {
     if (networkConfig) {
@@ -129,7 +143,11 @@ export const WalletContextProvider = ({
   }, [currentChain, currChain, removeAddress]);
 
   useEffect(() => {
-    if (networkConfig && walletAddress && (!stargateClient.current || currChain !== networkConfig.chainId)) {
+    if (
+      networkConfig &&
+      walletAddress &&
+      (!stargateClient.current || currChain !== networkConfig.chainId)
+    ) {
       connectWallet();
       setCurrChain(networkConfig.chainId);
     }

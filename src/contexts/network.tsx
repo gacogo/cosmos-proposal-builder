@@ -1,4 +1,11 @@
-import { ReactNode, createContext, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  ReactNode,
+  createContext,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "react-toastify";
 import {
   fetchChainConfig,
@@ -18,7 +25,6 @@ export interface NetworkListItem {
 
 export interface NetworkContextValue {
   currentChain: ChainListItem | null;
-  // parentChain: string | null;
   currentNetworkName: string | null;
   siblingNetworkNames: string[];
   networkConfig: NetworkConfig | null;
@@ -29,18 +35,11 @@ export interface NetworkContextValue {
   location: string | null;
   setLocation: (location: string) => void;
   setCurrentNetworkName: (network: string | null) => void;
-
 }
-
-interface SearchableObject {
-  [Symbol.search](string: string): number;
-}
-type CustomURLSearchParams = URLSearchParams | { new(init?: string | SearchableObject): URLSearchParams };
 
 export const NetworkContext = createContext<NetworkContextValue>({
   location: null,
   currentChain: null,
-  // parentChain: null,
   currentNetworkName: null,
   siblingNetworkNames: [],
   networkConfig: null,
@@ -50,7 +49,6 @@ export const NetworkContext = createContext<NetworkContextValue>({
   setCurrentChain: () => {},
   setLocation: () => {},
   setCurrentNetworkName: () => {},
-
 });
 
 export const NetworkContextProvider = ({
@@ -58,28 +56,17 @@ export const NetworkContextProvider = ({
 }: {
   children: ReactNode;
 }) => {
-  // const [currentNetworkName, setCurrentNetworkName] = useState<string | null>(
-  //   null,
-  // );
   const [error, setError] = useState<NetworkContextValue["error"]>(null);
   const [networkConfig, setNetworkConfig] =
     useState<NetworkContextValue["networkConfig"]>(null);
   const [siblingNetworkNames, setSiblingNetworkNames] = useState<
     NetworkContextValue["siblingNetworkNames"]
   >([]);
-  const {  availableChains ,currentChain, location, setLocation} = useChain();
-  // const [chainName, setChainName] =
-  //   useState<NetworkContextValue["currentChainName"]>(currentChainName);
-  const [chainItem, setCurrentChain] = useState<ChainListItem | null>(currentChain);
+  const { availableChains, currentChain, location, setLocation } = useChain();
+  const [chainItem, setCurrentChain] = useState<ChainListItem | null>(
+    currentChain,
+  );
 
-  // const selectedNetwork = useMemo(() => {
-  //   const searchParams = new (URLSearchParams as CustomURLSearchParams)(location?.search ?? "");
-  //   return searchParams.get("network") ?? null;
-  // }, [location]);
-  // const selectedNetwork = useMemo(() => {
-  //   const searchParams = new URLSearchParams(location?.search ?? "");
-  //   return searchParams.get("network") ?? null;
-  // }, [location]);
   const search = useSearch();
   const selectedNetwork = useMemo(
     () => new URLSearchParams(search).get("network") ?? null,
@@ -94,40 +81,43 @@ export const NetworkContextProvider = ({
     });
   }, []);
 
+  const fetchNetworks = useCallback(
+    async (chainName: string) => {
+      try {
+        const networks = await fetchNetworksForChain(chainName);
+        setSiblingNetworkNames(networks);
+      } catch (error) {
+        setSiblingNetworkNames([]);
+        handleError("Failed to fetch network configuration.");
+      }
+    },
+    [handleError],
+  );
 
+  const chainConfig = useCallback(
+    async (chainName: string, networkName: string) => {
+      try {
+        const config = await fetchChainConfig(chainName, networkName);
+        setNetworkConfig(config);
+      } catch (error) {
+        setNetworkConfig(null);
+        handleError("Failed to fetch network configuration.");
+      }
+    },
+    [handleError],
+  );
 
-  const fetchNetworks = useCallback(async (chainName: string) => {
-    try {
-      const networks = await fetchNetworksForChain(chainName);
-      setSiblingNetworkNames(networks);
-    } catch (error) {
-      setSiblingNetworkNames([]);
-      handleError("Failed to fetch network configuration.");
-    }
-  }, [handleError]);
-
-
-  const chainConfig = useCallback(async (chainName: string, networkName: string) => {
-    try {
-      const config = await fetchChainConfig(chainName, networkName);
-      setNetworkConfig(config);
-    } catch (error) {
-      setNetworkConfig(null);
-      handleError("Failed to fetch network configuration.");
-    }
-  }, [handleError]);
-  
   useEffect(() => {
     if (location) {
-    const chainName = location.split("/")[1];
-    const chain = availableChains.find((chain) => chain.value === chainName);
-    if (chain) {
-      setCurrentChain(chain);
-      fetchNetworks(chain.parent);
-    }}
+      const chainName = location.split("/")[1];
+      const chain = availableChains.find((chain) => chain.value === chainName);
+      if (chain) {
+        setCurrentChain(chain);
+        fetchNetworks(chain.parent);
+      }
+    }
     return;
   }, [location, availableChains, fetchNetworks]);
-
 
   useEffect(() => {
     if (selectedNetwork && currentChain) {
@@ -140,44 +130,64 @@ export const NetworkContextProvider = ({
     return networkConfig?.apis.rest[0].address;
   }, [networkConfig, selectedNetwork]);
 
-  const resetNetworks = useCallback((chain: string) => {
-    const newChain = availableChains.find((c) => c.value === chain);
-    if (newChain) {
-      setCurrentChain(newChain);
-      fetchNetworks(newChain.parent);
-      setLocation(`/${chain}`);
-    }
-  }, [availableChains, fetchNetworks, setLocation]);
+  const resetNetworks = useCallback(
+    (chain: string) => {
+      const newChain = availableChains.find((c) => c.value === chain);
+      if (newChain) {
+        setCurrentChain(newChain);
+        fetchNetworks(newChain.parent);
+        setLocation(`/${chain}`);
+      }
+    },
+    [availableChains, fetchNetworks, setLocation],
+  );
 
-  const setChain = useCallback((chain: ChainListItem) => {
-    setCurrentChain(chain);
-    setLocation(`/${chain.value}`);
-  }, [setLocation]);
+  const setChain = useCallback(
+    (chain: ChainListItem) => {
+      setCurrentChain(chain);
+      setLocation(`/${chain.value}`);
+    },
+    [setLocation],
+  );
 
+  const networkContextValue = useMemo(
+    () => ({
+      location,
+      setLocation,
+      currentChain: chainItem,
+      currentNetworkName: selectedNetwork,
+      siblingNetworkNames,
+      networkConfig,
+      error,
+      api: restApi,
+      resetNetworks,
+      setCurrentChain: setChain,
+      setCurrentNetworkName: (networkName: string | null) => {
+        const newSearch = new URLSearchParams(search);
+        if (networkName) {
+          newSearch.set("network", networkName);
+        } else {
+          newSearch.delete("network");
+        }
+        setLocation(`${location?.split("?")[0] || ""}?${newSearch.toString()}`);
+      },
+    }),
+    [
+      location,
+      setLocation,
+      chainItem,
+      selectedNetwork,
+      siblingNetworkNames,
+      networkConfig,
+      error,
+      restApi,
+      resetNetworks,
+      setChain,
+      search,
+    ],
+  );
   return (
-    <NetworkContext.Provider
-      value={{
-        location,
-        setLocation,
-        currentChain: chainItem,
-        currentNetworkName: selectedNetwork,
-        siblingNetworkNames,
-        networkConfig,
-        error,
-        api: restApi,
-        resetNetworks,
-        setCurrentChain: setChain,
-        setCurrentNetworkName: (networkName: string | null) => {
-          const newSearch = new URLSearchParams(search);
-          if (networkName) {
-            newSearch.set("network", networkName);
-          } else {
-            newSearch.delete("network");
-          }
-          setLocation(`${location?.split("?")[0] || ""}?${newSearch.toString()}`);
-        },
-      }}
-    >
+    <NetworkContext.Provider value={networkContextValue}>
       {children}
     </NetworkContext.Provider>
   );

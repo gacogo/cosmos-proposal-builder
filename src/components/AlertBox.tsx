@@ -7,8 +7,6 @@ const AMOUNT = 100;
 export const AlertBox = ({ coins }: { coins: Coin[] | undefined }) => {
   const [alertBox, setAlertBox] = useState(true);
 
-  console.error("coins", coins);
-
   return (
     <>
       {(!coins || coinsUnit(coins) < AMOUNT) && alertBox && (

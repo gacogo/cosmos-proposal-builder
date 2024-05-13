@@ -1,4 +1,4 @@
-import { createContext, useMemo } from "react";
+import { createContext, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { fetchAvailableChains } from "../config/chainConfig";
 import { useQuery, UseQueryResult, QueryKey } from "@tanstack/react-query";
@@ -16,6 +16,7 @@ export interface ChainContextValue {
   availableChains: ChainListItem[];
   location: string | null;
   setLocation: (location: string) => void;
+  isLoading: boolean;
 }
 
 export const ChainContext = createContext<ChainContextValue>({
@@ -23,6 +24,7 @@ export const ChainContext = createContext<ChainContextValue>({
   availableChains: [],
   location: null,
   setLocation: () => {},
+  isLoading: false,
 });
 
 export const ChainContextProvider = ({
@@ -31,40 +33,36 @@ export const ChainContextProvider = ({
   children: React.ReactNode;
 }) => {
   const [location, setLocation] = useLocation();
+  const [isLoading, setIsLoading] = useState(false);
   const chainName = location.split("/")[1];
 
-  
   const {
     data: chainList = [],
-    isLoading,
+    isLoading: isLoadingChains,
     error,
   }: UseQueryResult<ChainListItem[], Error> = useQuery<ChainListItem[], Error>({
     queryKey: ["availableChains"] as QueryKey,
     queryFn: () => fetchAvailableChains(),
   });
 
-  const availableChains = chainList.map((chain) => ({
-    ...chain,
-  }));
-  
-  console.error("availableChains",  availableChains);
-  const currentChain:ChainListItem | undefined = useMemo(() => availableChains.find((chain) => chain.value === chainName), [chainName, availableChains]);
-  if (isLoading) {
-    return <div>Loading...</div>;
+  const currentChain: ChainListItem | undefined = useMemo(
+    () => chainList.find((chain) => chain.value === chainName),
+    [chainName, chainList],
+  );
+  if (isLoadingChains) {
+    setIsLoading(true);
   }
 
   if (error) {
     return <div>Error: {error.message}</div>;
   }
-  
-  console.log("currentChain", currentChain);
- 
-  // const currentChain = useMemo(() =>availableChains.map((chain) => chain.value).find((name) => name === chainName), [chainName, availableChains]);
+
   return (
     <ChainContext.Provider
       value={{
-        currentChain: currentChain || null, 
-        availableChains,
+        currentChain: currentChain || null,
+        availableChains: chainList,
+        isLoading,
         location,
         setLocation,
       }}
@@ -73,4 +71,3 @@ export const ChainContextProvider = ({
     </ChainContext.Provider>
   );
 };
-

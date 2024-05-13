@@ -7,7 +7,6 @@
     "installBundle": true,
     "addPSM": true,
     "addVault": true,
-    "fundCommunityPool": true,
     "coreEvalProposal": true
 
 }
