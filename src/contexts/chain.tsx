@@ -1,4 +1,4 @@
-import { createContext, useMemo, useState } from "react";
+import { createContext, useMemo } from "react";
 import { useLocation } from "wouter";
 import { fetchAvailableChains } from "../config/chainConfig";
 import { useQuery, UseQueryResult, QueryKey } from "@tanstack/react-query";
@@ -16,7 +16,6 @@ export interface ChainContextValue {
   availableChains: ChainListItem[];
   location: string | null;
   setLocation: (location: string) => void;
-  isLoading: boolean;
 }
 
 export const ChainContext = createContext<ChainContextValue>({
@@ -24,7 +23,6 @@ export const ChainContext = createContext<ChainContextValue>({
   availableChains: [],
   location: null,
   setLocation: () => {},
-  isLoading: false,
 });
 
 export const ChainContextProvider = ({
@@ -33,7 +31,6 @@ export const ChainContextProvider = ({
   children: React.ReactNode;
 }) => {
   const [location, setLocation] = useLocation();
-  const [isLoading, setIsLoading] = useState(false);
   const chainName = location.split("/")[1];
 
   const {
@@ -50,7 +47,7 @@ export const ChainContextProvider = ({
     [chainName, chainList],
   );
   if (isLoadingChains) {
-    setIsLoading(true);
+    return <div>Loading...</div>;
   }
 
   if (error) {
@@ -62,7 +59,6 @@ export const ChainContextProvider = ({
       value={{
         currentChain: currentChain || null,
         availableChains: chainList,
-        isLoading,
         location,
         setLocation,
       }}

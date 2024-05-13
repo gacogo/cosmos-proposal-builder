@@ -29,7 +29,7 @@ const WalletConnectButton = ({ theme }: { theme: ButtonProps["theme"] }) => {
       toast.error("Invalid wallet address", { autoClose: 3000 });
       return "Invalid Address";
     }
-  }, [walletAddress, bech32Prefix, isLoading, stargateClient]);
+  }, [walletAddress, connectHandler, stargateClient]);
 
   return <Button onClick={connectHandler} text={buttonText} theme={theme} />;
 };

@@ -113,7 +113,7 @@ export const WalletContextProvider = ({
       }
     } catch (error) {
       console.error("Failed to suggest chain:", error);
-      toast.error("Failed to suggest chain " + error, {
+      toast.error("Failed to suggest chain ", {
         position: "top-right",
         autoClose: 3000,
       });
@@ -122,7 +122,7 @@ export const WalletContextProvider = ({
     } finally {
       setIsLoading(false);
     }
-  }, [networkConfig, currentChain, saveAddress, removeAddress]);
+  }, [networkConfig, currentChain, walletAddress, saveAddress, removeAddress]);
 
   useEffect(() => {
     if (networkConfig) {
